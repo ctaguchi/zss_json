@@ -101,7 +101,6 @@ def distance_with_cer(A: Node,
                     #                   +-
 
                     # Compute character error rate (CER) between node labels
-                    print(update_cost(node1, node2))
                     if update_cost(node1, node2) > 0:
                         cer = jiwer.cer(node1.label, node2.label)
                         cer = min(cer, 1)

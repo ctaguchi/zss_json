@@ -137,33 +137,38 @@ def tree_error_rate(ref_tree: Node,
 
 
 if __name__ == "__main__":
-    ref = """
-[{"headword": "rina",
-"pronunciations": ["řina", "rina"],
-"part_of_speech": "v.",
-"definition_spanish": "ir, viajar.",
-"definition_kichwa": "Shuk llaktamanta shukman purishpa,
-pawashpa imashinapash anchuriy.",
-"example_sentence": "Ñukapa llaktamanta rini."},
-{"headword": "ruku",
-"pronunciations": ["řuku", "ruku"],
-"part_of_speech": "adj.",
-"definition_spanish": "viejo, anciano.",
-"definition_kichwa": "Achka watayuk runa.",
-"example_sentence": "Kanpa ruku yayaka ¿maypitak kawsan?"}]
+    """Example usage of the functions.
+    
+    The hypothesis contains the following errors:
+    - The definition_spanish field is a list instead of a string.
+    - The pronunciation field uses the wrong pronunciation.
     """
-    hyp = """
-[{"headword": "rina",
+
+    ref = """{"dictionary": [{"headword": "rina",
 "pronunciations": ["řina", "rina"],
 "part_of_speech": "v.",
 "definition_spanish": "ir, viajar.",
-"definition_kichwa": "Shuk llaktamanta shukman purishpa,
-pawashpa imashinapash anchuriy.",
+"definition_kichwa": "Shuk llaktamanta shukman purishpa, pawashpa imashinapash anchuriy.",
 "example_sentence": "Ñukapa llaktamanta rini."},
 {"headword": "ruku",
 "pronunciations": ["řuku", "ruku"],
 "part_of_speech": "adj.",
 "definition_spanish": "viejo, anciano.",
 "definition_kichwa": "Achka watayuk runa.",
-"example_sentence": "Kanpa ruku yayaka ¿maypitak kawsan?"}]
-"""
+"example_sentence": "Kanpa ruku yayaka ¿maypitak kawsan?"}]}"""
+    hyp = """{"dictionary": [{"headword": "rina",
+"pronunciations": ["rina", "rina"],
+"part_of_speech": "v.",
+"definition_spanish": ["ir", "viajar"],
+"definition_kichwa": "Shuk llaktamanta shukman purishpa, pawashpa imashinapash anchuriy.",
+"example_sentence": "Ñukapa llaktamanta rini."},
+{"headword": "ruku",
+"pronunciations": ["ruku", "ruku"],
+"part_of_speech": "adj.",
+"definition_spanish": ["viejo", "anciano"],
+"definition_kichwa": "Achka watayuk runa.",
+"example_sentence": "Kanpa ruku yayaka ¿maypitak kawsan?"}]}"""
+    ref_tree = json_to_tree(json.loads(ref))
+    hyp_tree = json_to_tree(json.loads(hyp))
+    print("Tree error rate:", tree_error_rate(ref_tree, hyp_tree, substring_bonus=False))
+    print("Tree error rate with CER:", tree_error_rate(ref_tree, hyp_tree, substring_bonus=True))

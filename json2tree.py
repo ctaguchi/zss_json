@@ -340,5 +340,51 @@ class TestJson2Tree(unittest.TestCase):
         tree2 = json_to_tree(json_obj2)
         self.assertEqual(tree_error_rate(tree1, tree2), 4 / 11)
 
+    def test_tree_error_rate_3(self):
+        """Dictionary case, with missing info.
+        Tree 1:
+        - entry
+            - english
+                - word
+                    - dog
+                - pronunciation
+                    - dɔɡ
+            - spanish
+                - word
+                    - perro
+                - pronunciation
+                    - pero
+        
+        Tree 2:
+        - entry
+            - english
+                - word
+                    - cat
+            - spanish
+                - word
+                    - gato
+
+        The errors are:
+        - relabel 'dog' with 'cat'
+        - delete 'dɔɡ'
+        - delete 'pronunciation'
+        - relabel 'perro' with 'gato'
+        - delete 'pronunciation'
+        - delete 'pero'
+        so the tree error rate should be 6 / 11.
+        """
+        json_str1 = """
+        {"entry": {"english": {"word": "dog", "pronunciation": "dɔɡ"}, "spanish": {"word": "perro", "pronunciation": "pero"}}}
+        """
+        json_str2 = """
+        {"entry": {"english": {"word": "cat"}, "spanish": {"word": "gato"}}}
+        """
+        json_obj1 = json.loads(json_str1)
+        json_obj2 = json.loads(json_str2)
+        tree1 = json_to_tree(json_obj1)
+        tree2 = json_to_tree(json_obj2)
+        self.assertEqual(tree_error_rate(tree1, tree2), 6 / 11)
+
+
 if __name__ == "__main__":
     unittest.main()

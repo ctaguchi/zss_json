@@ -4,6 +4,7 @@ import unittest
 import time
 
 def json_to_tree(json_obj):
+    """Convert a JSON object to a tree."""
     stack = []
     root = None
     
@@ -35,11 +36,24 @@ def json_to_tree(json_obj):
     return root
 
 
+def count_nodes(node):
+    """Count the number of nodes in the tree."""
+    if node is None:
+        return 0
+    return 1 + sum(count_nodes(child) for child in node.children)
+
+
 def print_tree(node, level=0):
+    """Print the tree."""
     if node is not None:
         print("    " * level + f"- {node.label}")
         for child in node.children:
             print_tree(child, level + 1)
+
+
+def tree_error_rate(ref_tree, hyp_tree):
+    """Calculate the tree error rate between two trees."""
+    return simple_distance(ref_tree, hyp_tree) / count_nodes(ref_tree)
 
 
 class TestJson2Tree(unittest.TestCase):
@@ -240,6 +254,91 @@ class TestJson2Tree(unittest.TestCase):
         tree1 = json_to_tree(json_obj1)
         tree2 = json_to_tree(json_obj2)
         self.assertEqual(simple_distance(tree1, tree2), 4)
+
+    def test_count_nodes_1(self):
+        json_str = """
+        {"a": ["b", "c"]}
+        """
+        json_obj = json.loads(json_str)
+        tree = json_to_tree(json_obj)
+        self.assertEqual(count_nodes(tree), 3)
+
+    def test_count_nodes_2(self):
+        """Dictionary case.
+        Tree 1:
+        - entry
+            - english
+                - word
+                    - dog
+                - pronunciation
+                    - dɔɡ
+            - spanish
+                - word
+                    - perro
+                - pronunciation
+                    - pero
+        """
+        json_str = """
+        {"entry": {"english": {"word": "dog", "pronunciation": "dɔɡ"}, "spanish": {"word": "perro", "pronunciation": "pero"}}}
+        """
+        json_obj = json.loads(json_str)
+        tree = json_to_tree(json_obj)
+        self.assertEqual(count_nodes(tree), 11)
+
+    def test_tree_error_rate(self):
+        json_str1 = """
+        {"a": ["b", "c"]}
+        """
+        json_str2 = """
+        {"a": ["b", "d"]}
+        """
+        json_obj1 = json.loads(json_str1)
+        json_obj2 = json.loads(json_str2)
+        tree1 = json_to_tree(json_obj1)
+        tree2 = json_to_tree(json_obj2)
+        self.assertEqual(tree_error_rate(tree1, tree2), 1 / 3)
+
+    def test_tree_error_rate_2(self):
+        """Dictionary case.
+        Tree 1:
+        - entry
+            - english
+                - word
+                    - dog
+                - pronunciation
+                    - dɔɡ
+            - spanish
+                - word
+                    - perro
+                - pronunciation
+                    - pero
+        
+        Tree 2:
+        - entry
+            - english
+                - word
+                    - cat
+                - pronunciation
+                    - kæt
+            - spanish
+                - word
+                    - gato
+                - pronunciation
+                    - gato
+
+        The tree error rate should be 4 / 11.
+        """
+        json_str1 = """
+        {"entry": {"english": {"word": "dog", "pronunciation": "dɔɡ"}, "spanish": {"word": "perro", "pronunciation": "pero"}}}
+        """
+        json_str2 = """
+        {"entry": {"english": {"word": "cat", "pronunciation": "kæt"}, "spanish": {"word": "gato", "pronunciation": "gato"}}}
+        """
+        json_obj1 = json.loads(json_str1)
+        json_obj2 = json.loads(json_str2)
+        tree1 = json_to_tree(json_obj1)
+        tree2 = json_to_tree(json_obj2)
+        self.assertEqual(tree_error_rate(tree1, tree2), 4 / 11)
 
 if __name__ == "__main__":
     unittest.main()

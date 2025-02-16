@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "json2tree"
+version = "0.1.0"
+description = ""
+authors = ["Chihiro Taguchi"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+zss = "^1.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,5 +1,8 @@
 import unittest
-from zss_json import *
+import json
+from zss import simple_distance
+from zss_json import json_to_tree, count_nodes, tree_error_rate
+
 
 class TestJson2Tree(unittest.TestCase):
     def test_json_to_tree(self):
@@ -23,7 +26,6 @@ class TestJson2Tree(unittest.TestCase):
         json_obj2 = json.loads(json_str2)
         tree1 = json_to_tree(json_obj1)
         tree2 = json_to_tree(json_obj2)
-        time.sleep(0.1)
         self.assertEqual(simple_distance(tree1, tree2), 1)
 
     def test_simple_distance_2(self):
@@ -329,6 +331,97 @@ class TestJson2Tree(unittest.TestCase):
         tree1 = json_to_tree(json_obj1)
         tree2 = json_to_tree(json_obj2)
         self.assertEqual(tree_error_rate(tree1, tree2), 6 / 11)
+
+    def test_tree_error_rate_with_string_bonus_1(self):
+        """Tree error rate with substring bonus.
+        Tree 1:
+        - entry
+            - english
+                - word
+                    - dog
+                - pronunciation
+                    - dɔɡ
+            - spanish
+                - word
+                    - perro
+                - pronunciation
+                    - pero
+        
+        Tree 2:
+        - entry
+            - english
+                - word
+                    - dog
+                - pronunciation
+                    - doɡ
+            - spanish
+                - word
+                    - perro
+                - pronunciation
+                    - pero
+
+        The errors are:
+        - relabel 'dog' with 'dɔg', whose CER is 1/3
+        so the tree error rate should be 1/3 / 11 = 1 / 33.
+        """
+        json_str1 = """
+        {"entry": {"english": {"word": "dog", "pronunciation": "dɔɡ"}, "spanish": {"word": "perro", "pronunciation": "pero"}}}
+        """
+        json_str2 = """
+        {"entry": {"english": {"word": "dog", "pronunciation": "doɡ"}, "spanish": {"word": "perro", "pronunciation": "pero"}}}
+        """
+        json_obj1 = json.loads(json_str1)
+        json_obj2 = json.loads(json_str2)
+        tree1 = json_to_tree(json_obj1)
+        tree2 = json_to_tree(json_obj2)
+        self.assertAlmostEqual(tree_error_rate(tree1, tree2, substring_bonus=True), 1 / 33)
+
+    def test_tree_error_rate_with_string_bonus_2(self):
+        """Tree error rate with substring bonus.
+        Tree 1:
+        - entry
+            - english
+                - word
+                    - dog
+                - pronunciation
+                    - dɔɡ
+            - spanish
+                - word
+                    - perro
+                - pronunciation
+                    - pero
+        
+        Tree 2:
+        - entry
+            - english
+                - word
+                    - dog
+                - pronunciation
+                    - doɡ
+            - spanish
+                - word
+                    - perra
+                - pronunciation
+                    - pera
+
+        The errors are:
+        - relabel 'dɔɡ' with 'dɔɡ', whose CER is 1/3
+        - relabel 'perro' with 'perra', whose CER is 1/5
+        - relabel 'pero' with 'pera', whose CER is 1/4
+        so the tree error rate should be (1/3 + 1/5 + 1/4) / 11 = 47 / 660.
+        """
+        json_str1 = """
+        {"entry": {"english": {"word": "dog", "pronunciation": "dɔɡ"}, "spanish": {"word": "perro", "pronunciation": "pero"}}}
+        """
+        json_str2 = """
+        {"entry": {"english": {"word": "dog", "pronunciation": "doɡ"}, "spanish": {"word": "perra", "pronunciation": "pera"}}}
+        """
+        json_obj1 = json.loads(json_str1)
+        json_obj2 = json.loads(json_str2)
+        tree1 = json_to_tree(json_obj1)
+        tree2 = json_to_tree(json_obj2)
+        self.assertAlmostEqual(tree_error_rate(tree1, tree2, substring_bonus=True), 47 / 660)
+
 
 if __name__ == "__main__":
     unittest.main()
